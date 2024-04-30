@@ -1,0 +1,13 @@
+google-generativeai 
+django
+requests
+#--upgrade --quiet  langchain-google-genai pillow
+django-cors-headers 
+PyPDF2
+langchain_google_genai
+langchain
+tiktoken
+langchain-community
+python-dotenv
+pinecone-client
+youtube_transcript_api

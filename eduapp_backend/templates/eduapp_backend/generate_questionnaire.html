@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Generate Questionnaire with LangChain and Gemini-Pro</title>
+    <style>
+      form {
+        display: flex;
+        flex-direction: column;
+        width: 50%;
+        margin: 20px auto;
+      }
+
+      label {
+        margin-bottom: 5px;
+      }
+
+      textarea {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 15px;
+      }
+
+      #questions {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Generate a Questionnaire</h1>
+    <form method="post" id="myForm">
+      {% csrf_token %}
+      <label for="paragraph">Enter a topic:</label><br />
+      <textarea id="paragraph" name="paragraph" rows="5" cols="50"></textarea
+      ><br /><br />
+      <button type="submit">Generate Questionnaire</button>
+    </form>
+    <div id="questions"></div>
+
+    <script>
+      // Function to display generated questions (replace with actual logic)
+      function displayQuestions(data) {
+        const questionsDiv = document.getElementById("questions");
+        questionsDiv.innerHTML = "";
+
+        if (data.error) {
+          questionsDiv.innerHTML = `<p class="error">${data.error}</p>`;
+        } else if (data.questions) {
+          for (const question of data.questions) {
+            questionsDiv.innerHTML += `<h2>${question.question_text}</h2>`;
+            questionsDiv.innerHTML += `<ul>`;
+            for (const choice of question.answer_choices) {
+              questionsDiv.innerHTML += `<li>${choice}</li>`;
+            }
+            questionsDiv.innerHTML += `</ul>`;
+          }
+        } else {
+          questionsDiv.innerHTML = `<p class="error">An unexpected error occurred.</p>`;
+        }
+      }
+      const form = document.getElementById("myForm");
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const formData = {
+          paragraph: document.getElementById("paragraph").value,
+        };
+
+        try {
+          const csrftoken = document.querySelector(
+            "[name=csrfmiddlewaretoken]"
+          ).value;
+          const response = await fetch("/generate_questionnaire/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrftoken,
+            },
+            body: JSON.stringify(formData),
+          });
+
+          const data = await response.json();
+          console.log(data);
+
+          if (response.ok) {
+            displayQuestions(data);
+          } else {
+            displayQuestions({ error: data.error });
+          }
+        } catch (error) {
+          console.error("An error occurred:", error);
+          displayQuestions({
+            error: "An error occurred. Please try again later.",
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

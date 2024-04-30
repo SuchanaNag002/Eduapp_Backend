@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube Transcript Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      input[type="text"],
+      input[type="url"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      textarea {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>YouTube Transcript Generator</h1>
+      <form action="" method="post">
+        {% csrf_token %}
+        <input
+          type="url"
+          name="youtube_link"
+          placeholder="Enter YouTube Video Link"
+          required
+        />
+        <select name="subject" id="subject">
+          <option value="Physics">Physics</option>
+          <option value="Chemistry">Chemistry</option>
+          <option value="Mathematics">Mathematics</option>
+          <option value="Data Science and Statistics">
+            Data Science and Statistics
+          </option>
+          <option value="Other">Other</option>
+        </select>
+        <input
+          type="text"
+          name="other_subject"
+          id="other_subject"
+          placeholder="Enter Other Subject"
+          style="display: none"
+        />
+        <button type="submit" class="button">Generate Notes</button>
+      </form>
+      <hr />
+      {% if notes %}
+      <h2>Generated Notes</h2>
+      <textarea readonly>{{ notes }}</textarea>
+      {% endif %}
+    </div>
+
+    <script>
+      // Show/hide other subject input based on selection
+      document
+        .getElementById("subject")
+        .addEventListener("change", function () {
+          var otherSubjectInput = document.getElementById("other_subject");
+          if (this.value === "Other") {
+            otherSubjectInput.style.display = "block";
+            otherSubjectInput.setAttribute("required", "true"); // Make the input required
+          } else {
+            otherSubjectInput.style.display = "none";
+            otherSubjectInput.removeAttribute("required"); // Remove the required attribute
+          }
+        });
+    </script>
+  </body>
+</html>

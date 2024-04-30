@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Query</title>
+  </head>
+  <body>
+    <h1>Ask a Question about PDF</h1>
+
+    <form id="query-form" enctype="multipart/form-data">
+      <input
+        type="hidden"
+        id="csrf_token"
+        name="csrfmiddlewaretoken"
+        value="{{ csrf_token }}"
+      />
+      <label for="pdf_file">Upload PDF:</label><br />
+      <input type="file" id="pdf_file" name="pdf_file" /><br />
+      <label for="question">Enter Your Question:</label><br />
+      <input type="text" id="question" name="question" /><br />
+      <button type="button" onclick="submitForm()">Ask</button>
+    </form>
+
+    <div id="response"></div>
+
+    <script>
+      function submitForm() {
+        const pdfFile = document.getElementById("pdf_file").files[0];
+        const question = document.getElementById("question").value.trim();
+        const csrfToken = document.getElementById("csrf_token").value;
+
+        if (!pdfFile || !question) {
+          alert("Please select a PDF file and enter a question.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("csrfmiddlewaretoken", csrfToken);
+        formData.append("pdf_file", pdfFile);
+        formData.append("question", question);
+
+        console.log("formData file: ", formData.get("pdf_file"));
+        console.log("formData question: ", formData.get("question"));
+
+        fetch("/ask_question/", {
+          method: "POST",
+          body: formData,
+          // Do not set Content-Type header when sending FormData
+          headers: {
+            "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("response").innerText = data.response;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    </script>
+  </body>
+</html>
