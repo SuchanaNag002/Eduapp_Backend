@@ -4,6 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PDF Query</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      #query-form {
+        width: 50%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      #query-form label,
+      #query-form input,
+      #query-form button {
+        margin-bottom: 10px;
+      }
+      #response {
+        margin-top: 20px;
+        text-align: center;
+      }
+      .loading-message {
+        text-align: center;
+        color: #888;
+        margin-top: 20px;
+      }
+    </style>
   </head>
   <body>
     <h1>Ask a Question about PDF</h1>
@@ -15,14 +52,18 @@
         name="csrfmiddlewaretoken"
         value="{{ csrf_token }}"
       />
-      <label for="pdf_file">Upload PDF:</label><br />
-      <input type="file" id="pdf_file" name="pdf_file" /><br />
-      <label for="question">Enter Your Question:</label><br />
-      <input type="text" id="question" name="question" /><br />
+      <label for="pdf_file">Upload PDF:</label>
+      <input type="file" id="pdf_file" name="pdf_file" />
+      <label for="question">Enter Your Question:</label>
+      <input type="text" id="question" name="question" />
       <button type="button" onclick="submitForm()">Ask</button>
     </form>
 
     <div id="response"></div>
+
+    <div id="loading" class="loading-message" style="display: none">
+      Please wait while answer loads...
+    </div>
 
     <script>
       function submitForm() {
@@ -40,23 +81,23 @@
         formData.append("pdf_file", pdfFile);
         formData.append("question", question);
 
-        console.log("formData file: ", formData.get("pdf_file"));
-        console.log("formData question: ", formData.get("question"));
+        document.getElementById("loading").style.display = "block";
 
         fetch("/ask_question/", {
           method: "POST",
           body: formData,
-          // Do not set Content-Type header when sending FormData
           headers: {
             "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
           },
         })
           .then((response) => response.json())
           .then((data) => {
+            document.getElementById("loading").style.display = "none";
             document.getElementById("response").innerText = data.response;
           })
           .catch((error) => {
             console.error("Error:", error);
+            document.getElementById("loading").style.display = "none";
           });
       }
     </script>
