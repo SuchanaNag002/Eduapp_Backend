@@ -3,28 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>YouTube Transcript Generator</title>
+    <title>YouTube Notes Generator</title>
     <style>
       body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
       }
       .container {
         max-width: 800px;
-        margin: 0 auto;
+        width: 100%;
       }
       input[type="text"],
-      input[type="url"] {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-      }
+      input[type="url"],
       textarea {
         width: 100%;
-        height: 200px;
         padding: 10px;
         margin-bottom: 10px;
+        box-sizing: border-box;
+      }
+      textarea {
+        height: 300px; /* Increased height */
       }
       .button {
         padding: 10px 20px;
@@ -33,12 +36,18 @@
         border: none;
         cursor: pointer;
       }
+      .loading-message {
+        text-align: center;
+        color: #888;
+        margin-top: 20px; /* Increased margin */
+        display: none; /* Initially hide loading message */
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>YouTube Transcript Generator</h1>
-      <form action="" method="post">
+      <form action="" method="post" id="generateForm">
         {% csrf_token %}
         <input
           type="url"
@@ -64,11 +73,14 @@
         />
         <button type="submit" class="button">Generate Notes</button>
       </form>
-      <hr />
       {% if notes %}
       <h2>Generated Notes</h2>
       <textarea readonly>{{ notes }}</textarea>
       {% endif %}
+    </div>
+
+    <div id="loading" class="loading-message">
+      Please wait while explanation loads...
     </div>
 
     <script>
@@ -79,11 +91,25 @@
           var otherSubjectInput = document.getElementById("other_subject");
           if (this.value === "Other") {
             otherSubjectInput.style.display = "block";
-            otherSubjectInput.setAttribute("required", "true"); // Make the input required
+            otherSubjectInput.setAttribute("required", "true");
           } else {
             otherSubjectInput.style.display = "none";
-            otherSubjectInput.removeAttribute("required"); // Remove the required attribute
+            otherSubjectInput.removeAttribute("required");
           }
+        });
+
+      // Add event listener to the form
+      document
+        .getElementById("generateForm")
+        .addEventListener("submit", function (event) {
+          // Prevent form submission
+          event.preventDefault();
+
+          // Display the loading message
+          document.getElementById("loading").style.display = "block";
+
+          // Submit the form
+          this.submit();
         });
     </script>
   </body>
