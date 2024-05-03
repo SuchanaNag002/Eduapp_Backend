@@ -4,26 +4,46 @@
     <meta charset="UTF-8" />
     <title>Generate Questionnaire with LangChain and Gemini-Pro</title>
     <style>
-      form {
+      body {
+        font-family: Arial, sans-serif;
         display: flex;
         flex-direction: column;
-        width: 50%;
-        margin: 20px auto;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
       }
-
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      form {
+        width: 80%;
+        margin: 20px auto;
+        text-align: center;
+      }
       label {
         margin-bottom: 5px;
       }
-
       textarea {
         padding: 10px;
         border: 1px solid #ccc;
         border-radius: 4px;
         margin-bottom: 15px;
+        width: 100%;
+        box-sizing: border-box;
       }
-
       #questions {
         margin-top: 20px;
+        text-align: center;
+      }
+      .error {
+        color: red;
+      }
+      .loading-message {
+        text-align: center;
+        margin-top: 20px;
+        color: #888;
       }
     </style>
   </head>
@@ -32,37 +52,52 @@
     <form method="post" id="myForm">
       {% csrf_token %}
       <label for="paragraph">Enter a topic:</label><br />
-      <textarea id="paragraph" name="paragraph" rows="5" cols="50"></textarea
-      ><br /><br />
+      <textarea id="paragraph" name="paragraph" rows="3" cols="40"></textarea>
+      <br /><br />
       <button type="submit">Generate Questionnaire</button>
     </form>
     <div id="questions"></div>
-
+    <button id="nextButton" style="display: none">Next</button>
+    <div id="loading" class="loading-message" style="display: none">
+      Please wait while quiz is loading...
+    </div>
     <script>
-      // Function to display generated questions (replace with actual logic)
-      function displayQuestions(data) {
+      let currentQuestionIndex = 0;
+      let questions = [];
+
+      function displayQuestion(questionIndex) {
         const questionsDiv = document.getElementById("questions");
         questionsDiv.innerHTML = "";
 
-        if (data.error) {
-          questionsDiv.innerHTML = `<p class="error">${data.error}</p>`;
-        } else if (data.questions) {
-          for (const question of data.questions) {
-            questionsDiv.innerHTML += `<h2>${question.question_text}</h2>`;
-            questionsDiv.innerHTML += `<ul>`;
-            for (const choice of question.answer_choices) {
-              questionsDiv.innerHTML += `<li>${choice}</li>`;
+        if (questionIndex < questions.length) {
+          const question = questions[questionIndex];
+          let questionHTML = `<h2>Question ${questionIndex + 1}: ${
+            question.Question
+          }</h2>`;
+          const options = ["A", "B", "C", "D"];
+          questionHTML += "<div>";
+          for (const key in question) {
+            if (key !== "QuestionNumber" && key !== "Question") {
+              const optionIndex = options.indexOf(key);
+              if (optionIndex !== -1) {
+                questionHTML += `<p>${key}) ${question[key]}</p>`;
+              }
             }
-            questionsDiv.innerHTML += `</ul>`;
           }
+          questionHTML += "</div>";
+          questionHTML += `<p><strong>Correct Answer:</strong> ${question.CorrectAnswer}</p>`;
+          questionHTML += `<p><strong>Explanation:</strong> ${question.Explanation}</p>`;
+          questionsDiv.innerHTML = questionHTML;
+          document.getElementById("nextButton").style.display = "block";
         } else {
-          questionsDiv.innerHTML = `<p class="error">An unexpected error occurred.</p>`;
+          questionsDiv.innerHTML = `<p>You have completed the questionnaire.</p>`;
+          document.getElementById("nextButton").style.display = "none";
         }
       }
       const form = document.getElementById("myForm");
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
-
+        document.getElementById("loading").style.display = "block";
         const formData = {
           paragraph: document.getElementById("paragraph").value,
         };
@@ -79,21 +114,32 @@
             },
             body: JSON.stringify(formData),
           });
-
           const data = await response.json();
           console.log(data);
-
           if (response.ok) {
-            displayQuestions(data);
+            questions = data;
+            displayQuestion(currentQuestionIndex);
           } else {
-            displayQuestions({ error: data.error });
+            displayQuestion(-1);
+            document.getElementById(
+              "questions"
+            ).innerHTML += `<p class="error">${data.error}</p>`;
           }
         } catch (error) {
           console.error("An error occurred:", error);
-          displayQuestions({
-            error: "An error occurred. Please try again later.",
-          });
+          displayQuestion(-1);
+          document.getElementById(
+            "questions"
+          ).innerHTML += `<p class="error">An error occurred. Please try again later.</p>`;
+        } finally {
+          document.getElementById("loading").style.display = "none";
         }
+      });
+
+      const nextButton = document.getElementById("nextButton");
+      nextButton.addEventListener("click", () => {
+        currentQuestionIndex++;
+        displayQuestion(currentQuestionIndex);
       });
     </script>
   </body>
