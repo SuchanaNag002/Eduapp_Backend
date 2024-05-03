@@ -52,7 +52,7 @@ Do not use Markdown styles. No added text or replies. Should be parsable by JSON
 @csrf_exempt
 def generate_questionnaire(request):
     if request.method == "GET":
-        return JsonResponse({"error": "GET method not supported"}, status=405)
+        return render(request, 'eduapp_backend/generate_questionnaire.html')
     elif request.method == "POST":
         try:
             data = json.loads(request.body)
